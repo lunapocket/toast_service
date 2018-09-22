@@ -31,9 +31,7 @@ class Autolog(object):
 			self.logger.debug("called with arguments of %s > %s "%(self._args2str(*args, **kwargs), self.msg))
 		else:
 			self.logger.debug("called with arguments of %s"%self._args2str(*args, **kwargs))
-		self.func(*args, **kwargs)
-
-		return self.func
+		return self.func(*args, **kwargs)
 
 	def _getLoggerInfo(self, original_function):
 		if original_function is not None:
@@ -46,3 +44,22 @@ class Autolog(object):
 			return ', '.join(str(i) for i in args) + ' ' + str(kwargs)
 		else:
 			return ', '.join(str(i) for i in args)
+
+
+
+# from functools import wraps, partial
+# import time
+
+# def sleep(func=None, *, seconds=None, msg=None):
+#     if func is None:
+#         return partial(sleep, seconds=seconds, msg=msg)
+
+#     seconds = seconds if seconds else 1
+#     msg = msg if msg else 'Sleeping for {} seconds'.format(seconds)
+
+#     @wraps(func)
+#     def wrapper(*args, **kwargs):
+#         print(msg)
+#         time.sleep(seconds)
+#         return func(*args, **kwargs)
+#     return wrapper
