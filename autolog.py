@@ -3,63 +3,52 @@ import functools
 
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(name)s: %(message)s',)
 
-class Autolog(object):
-	def __init__(self, msg = None, name='default'):
-		if callable(msg):
-			#콜할 수 있는 일반 상황(데코메이커 호출 필요 x)
-			self.func = msg
-			self.logger = self._getLoggerInfo(self.func)
-			self.decoagain = 0
-			self.msg = None
-			functools.update_wrapper(self, self.func)
+def _getLoggerInfo(original_function, name):
+	if original_function is not None:
+		return logging.getLogger(original_function.__qualname__)
+	else:
+		return logging.getLogger(self.name)
+
+def _args2str(*args, **kwargs):
+	if kwargs:
+		return ', '.join(str(i) for i in args) + ' ' + str(kwargs)
+	else:
+		return ', '.join(str(i) for i in args)
+
+def autolog(func = None, *, msg = None, name = 'default', solo = 0):
+	if func is None:
+		return functools.partial(autolog, msg = msg)
+
+	if solo:
+		logger.debug("msg")
+		return
+
+	logger = _getLoggerInfo(func, name)
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		if msg is not None:
+			logger.debug("| %s \n  >> %s "%(_args2str(*args, **kwargs), msg))
 		else:
-			#메시지를 활용한 데코 메이커 후 다시 init 해야함
-			self.decoagain = 1
-			self.msg = msg
-			self.name = name
+			logger.debug("| %s"%_args2str(*args, **kwargs))
+		return func(*args, **kwargs)
+	return wrapper
 
-	def __call__(self, *args, **kwargs):
-		if self.decoagain:
-		#데코 다시 필요하면
-			self.decoagain = 0
-			self.func = args[0]
-			self.logger = self._getLoggerInfo(self.func)
-			functools.update_wrapper(self, self.func)
-			return self		
-		
-		if self.msg is not None:
-			self.logger.debug("called with arguments of %s > %s "%(self._args2str(*args, **kwargs), self.msg))
-		else:
-			self.logger.debug("called with arguments of %s"%self._args2str(*args, **kwargs))
-		return self.func(*args, **kwargs)
+def call_log_class(Cls):
+	class NewCls(object):
+		def __init__(self, *args, **kwargs):
+			self.oinstance = Cls(*args, **kwargs)
 
-	def _getLoggerInfo(self, original_function):
-		if original_function is not None:
-			return logging.getLogger(original_function.__qualname__)
-		else:
-			return logging.getLogger(self.name)
+		def __getattribute__(self,s):
+			try:
+				x = super(NewCls, self).__getattribute__(s)
+			except AttributeError:
+				pass
+			else:
+				return x
 
-	def _args2str(self, *args, **kwargs):
-		if kwargs:
-			return ', '.join(str(i) for i in args) + ' ' + str(kwargs)
-		else:
-			return ', '.join(str(i) for i in args)
-
-
-
-# from functools import wraps, partial
-# import time
-
-# def sleep(func=None, *, seconds=None, msg=None):
-#     if func is None:
-#         return partial(sleep, seconds=seconds, msg=msg)
-
-#     seconds = seconds if seconds else 1
-#     msg = msg if msg else 'Sleeping for {} seconds'.format(seconds)
-
-#     @wraps(func)
-#     def wrapper(*args, **kwargs):
-#         print(msg)
-#         time.sleep(seconds)
-#         return func(*args, **kwargs)
-#     return wrapper
+			x = self.oinstance.__getattribute__(s)
+			if type(x) == type(self.__init__):
+				return autolog(x)
+			else:
+				return x
+	return NewCls
