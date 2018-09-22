@@ -6,9 +6,11 @@ if __name__ == '__main__':
 
 	address = ('127.0.0.1', 8192) #let the kernal give us a port
 
-	server = EchoServer(address, EchoRequestHandler)
+	server = ThreadedEchoServer(address, ThreadedEchoRequestHandler)
 	ip, port = server.server_address
 
-	server.server_forever()
-	
-	blogger.info('server on %s:%s', ip, port)
+	t = threading.Thread(target = server.serve_forever)
+	t.setDaemon(True)
+	t.start()
+
+	blogger.info('server on %s:%s on %s', ip, port, t.getName())

@@ -3,6 +3,8 @@ import functools
 
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(name)s: %(message)s',)
 
+LOGARG = False
+
 blogger = logging.getLogger("user")
 
 def _getLoggerInfo(original_function, name):
@@ -12,10 +14,13 @@ def _getLoggerInfo(original_function, name):
 		return logging.getLogger(self.name)
 
 def _args2str(*args, **kwargs):
-	if kwargs:
-		return ', '.join(str(i) for i in args) + ' ' + str(kwargs)
+	if LOGARG:
+		if kwargs:
+			return ', '.join(str(i) for i in args) + ' ' + str(kwargs)
+		else:
+			return ', '.join(str(i) for i in args)
 	else:
-		return ', '.join(str(i) for i in args)
+		return ' '
 
 def autolog(func = None, *, msg = None, name = 'default', solo = 0):
 	if func is None:
@@ -27,13 +32,13 @@ def autolog(func = None, *, msg = None, name = 'default', solo = 0):
 		logger.debug("msg")
 		return
 
-	
+
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
 		if msg is not None:
-			logger.debug("| %s \n  >> %s "%(_args2str(*args, **kwargs), msg))
+			logger.debug("%s \n  >> %s "%(_args2str(*args, **kwargs), msg))
 		else:
-			logger.debug("| %s"%_args2str(*args, **kwargs))
+			logger.debug("%s"%_args2str(*args, **kwargs))
 		return func(*args, **kwargs)
 	return wrapper
 
