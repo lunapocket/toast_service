@@ -4,20 +4,36 @@ import functools
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(name)s: %(message)s',)
 
 class Autolog(object):
-	def __init__(self, original_function = None, *, msg = None, name='default'):
-		if  original_function = None
-		self.original_function = original_function
-		self.logger = self._getLoggerInfo(original_function)
-		self.name = name
-		self.msg = msg
-
+	def __init__(self, msg = None, name='default'):
+		if callable(msg):
+			#콜할 수 있는 일반 상황(데코메이커 호출 필요 x)
+			self.func = msg
+			self.logger = self._getLoggerInfo(self.func)
+			self.decoagain = 0
+			self.msg = None
+			functools.update_wrapper(self, self.func)
+		else:
+			#메시지를 활용한 데코 메이커 후 다시 init 해야함
+			self.decoagain = 1
+			self.msg = msg
+			self.name = name
 
 	def __call__(self, *args, **kwargs):
+		if self.decoagain:
+		#데코 다시 필요하면
+			self.decoagain = 0
+			self.func = args[0]
+			self.logger = self._getLoggerInfo(self.func)
+			functools.update_wrapper(self, self.func)
+			return self		
+		
 		if self.msg is not None:
-			self.logger.debug("called with arguments of %s > %s "%(self._args2str(*args, **kwargs) + msg ,))
+			self.logger.debug("called with arguments of %s > %s "%(self._args2str(*args, **kwargs), self.msg))
 		else:
 			self.logger.debug("called with arguments of %s"%self._args2str(*args, **kwargs))
-		self.original_function(*args, **kwargs)
+		self.func(*args, **kwargs)
+
+		return self.func
 
 	def _getLoggerInfo(self, original_function):
 		if original_function is not None:
