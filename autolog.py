@@ -3,6 +3,8 @@ import functools
 
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(name)s: %(message)s',)
 
+blogger = logging.getLogger("user")
+
 def _getLoggerInfo(original_function, name):
 	if original_function is not None:
 		return logging.getLogger(original_function.__qualname__)
@@ -19,11 +21,13 @@ def autolog(func = None, *, msg = None, name = 'default', solo = 0):
 	if func is None:
 		return functools.partial(autolog, msg = msg)
 
+
+	logger = _getLoggerInfo(func, name)
 	if solo:
 		logger.debug("msg")
 		return
 
-	logger = _getLoggerInfo(func, name)
+	
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
 		if msg is not None:
@@ -33,7 +37,16 @@ def autolog(func = None, *, msg = None, name = 'default', solo = 0):
 		return func(*args, **kwargs)
 	return wrapper
 
+
 def call_log_class(Cls):
+	for attr_name in dir(Cls):
+		attr_value = getattr(Cls, attr_name)
+		if type(attr_value) == type(Cls.__init__):
+			setattr(Cls, attr_name, autolog(attr_value))
+	return Cls
+
+
+def call_log_class_soft(Cls):
 	class NewCls(object):
 		def __init__(self, *args, **kwargs):
 			self.oinstance = Cls(*args, **kwargs)
