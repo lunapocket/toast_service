@@ -29,7 +29,7 @@ class EchoServer(socketserver.TCPServer):
 
 	@Autolog
 	def __init__(self, server_address, handler_class=EchoRequestHandler):
-		socketserver.TCPServer.__init(self, server_address, handler_class)
+		socketserver.TCPServer.__init__(self, server_address, handler_class)
 		return
 
 	@Autolog
@@ -68,7 +68,10 @@ class EchoServer(socketserver.TCPServer):
 		return socketserver.TCPServer.close_request(self, request_address)
 
 
-# class A(object):
-# 	@Autolog
-# 	def foo(*args, **kwargs):
-# 		return None
+class A(object):
+	@Autolog(msg = 'hi')
+	def foo(*args, **kwargs):
+		return None
+
+if __name__ == '__main__':
+	A.foo(1,2)
