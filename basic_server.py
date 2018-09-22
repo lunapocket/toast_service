@@ -1,34 +1,85 @@
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import socketserver
 import threading
-from autolog import autolog, call_log_class
+import os
+from urllib.parse import urlparse
+
+
+from autolog import autolog, call_log_class, call_log_class_soft
 # logger.getlogger
 
 @call_log_class
-class ThreadedEchoRequestHandler(socketserver.BaseRequestHandler):
+class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
-	def handle(self):
-		data = self.request.recv(1024)
-		cur_thread = threading.currentThread()
-		response = '%s: %s' % (cur_thread.getName(), data)
-		self.request.send(bytes(response, 'utf8'))
+	def __init__(self, request, client_address, server):
+		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
+		BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+		
+		
+
+		print(self.request_version)
+
+
+		return  
+# 		request = HTTPRequest(request_text)
+
+#		print request.error_code       # None  (check this first)
+#		print request.command          # "GET"
+#		print request.path             # "/who/ken/trust.html"
+#		print request.request_version  # "HTTP/1.1"
+#		print len(request.headers)     # 3
+#		print request.headers.keys()   # ['accept-charset', 'host', 'accept']
+#		print request.headers['host']  # "cm.bell-labs.com"
+
+	def do_GET(self):
+		self.parsed_path = urlparse(self.path)
+		filepath = self.parsed_path.path
+		filename, file_extension = os.path.splitext(filepath)
+		
+		message = self._getFile(filepath)
+
+		if self.request_version == "HTTP/1.1":
+			if message != 0:
+				self.send_response(200)
+				self.send_header('Content-Length', '1024')
+				if file_extension == '.jpg':
+					self.send_header('Content-Type', 'image/jpeg')
+				else:
+					self.send_header('Content-Type', 'text/html')
+				self.end_headers()
+				self.wfile.write(message)
+			else:
+				self.send_response(404)
+				self.send_header('Content-Length', '1024')
+				self.end_headers()
+		else:
+			self.send_response(400)
+			self.send_header('Content-Length', '1024')
+			self.end_headers()
+		# message = bytes(self.requestline,'utf8')
+		
+		
+
 		return
 
 	
-@call_log_class
-class ThreadedEchoServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+	def _getFile(self, filename):
+		path = os.path.abspath("./files/" + filename)
+		
+		try:
+			with open(path, "rb") as f:
+				doc = f.read()
+		except:
+			doc = 0
+
+		return doc
+	
+@call_log_class_soft
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
 	pass
 
 
 if __name__ == '__main__':
-	pass
-	# a = A()
-	# # autolog
-
-	# a.foo(3,4)
-	# # A.foo = autolog(msg = 'hi')(A.foo)
-	# # A.foo(1,2)
-	
-
-	# a.bar(1,2)
-	# # A.bar = autolog(A.bar)
-	# # A.bar(1,2)
+	address = ('192.168.200.113', 8192) #let the kernal give us a port
+	server = ThreadedHTTPServer(address, ThreadedHTTPRequestHandler)
+	server.serve_forever()
