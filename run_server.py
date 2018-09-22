@@ -1,5 +1,5 @@
+from basic_server import *
 if __name__ == '__main__':
-	from basic-server import *
 
 	address = ('localhost', 8192) #let the kernal give us a port
 

@@ -5,9 +5,10 @@ logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(name)s: %(messa
 class Autolog(object):
 	def __init__(self, original_function = None, msg = None, name='default'):
 		self.original_function = original_function
-		self.logger = self._getLoggerInfo(original_function)
-		self.msg = msg
 		self.name = name
+		self.msg = msg
+		
+		self.logger = self._getLoggerInfo(original_function)
 
 	def __call__(self, *args, **kwargs):
 		if self.msg is not None:

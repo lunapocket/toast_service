@@ -2,7 +2,7 @@ import socketserver
 from autolog import Autolog
 # logger.getlogger
 
-autolog = Autolog(None)
+autolog = Autolog(name = "server")
 
 class EchoRequestHandler(socketserver.BaseRequestHandler):
 
@@ -72,7 +72,3 @@ class EchoServer(socketserver.TCPServer):
 # 	@Autolog
 # 	def foo(*args, **kwargs):
 # 		return None
-
-if __name__ == '__main__':
-		
-	# on the fly testerc
