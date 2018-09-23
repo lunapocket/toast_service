@@ -21,7 +21,20 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 		return  
+<<<<<<< HEAD
 		
+=======
+# 		request = HTTPRequest(request_text)
+
+#		print request.error_code       # None  (check this first)
+#		print request.command          # "GET"
+#		print request.path             # "/who/ken/trust.html"
+#		print request.request_version  # "HTTP/1.1"
+#		print len(request.headers)     # 3
+#		print request.headers.keys()   # ['accept-charset', 'host', 'accept']
+#		print request.headers['host']  # "cm.bell-labs.com"
+
+>>>>>>> master
 	def do_GET(self):
 		self.parsed_path = urlparse(self.path)
 		filepath = self.parsed_path.path
