@@ -21,7 +21,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 		return  
-		
+
 	def do_GET(self):
 		self.parsed_path = urlparse(self.path)
 		filepath = self.parsed_path.path
