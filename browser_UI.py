@@ -24,24 +24,37 @@ console_frame = tkinter.Frame(content)
 addr_bar = tkinter.Entry(content)
 addr_label = tkinter.Label(content, text = "address : ")
 loadB = tkinter.Button(content, text = "rget",
-	overrelief="solid", width=5, command=None, repeatdelay=1000, repeatinterval=100)
+	overrelief="solid", width=5, command=lambda: loadCallback(), repeatdelay=1000, repeatinterval=100)
 getB = tkinter.Button(content, text = "get",
-	overrelief="solid", width=5, command=None, repeatdelay=1000, repeatinterval=100)
+	overrelief="solid", width=5, command=lambda: getCallback(), repeatdelay=1000, repeatinterval=100)
 postB = tkinter.Button(content, text = "post",
-	overrelief="solid", width=5, command=None, repeatdelay=1000, repeatinterval=100)
+	overrelief="solid", width=5, command=lambda: postCallback(), repeatdelay=1000, repeatinterval=100)
 putB = tkinter.Button(content, text = "put",
-	overrelief="solid", width=5, command=None, repeatdelay=1000, repeatinterval=100)
+	overrelief="solid", width=5, command=lambda: putCallback(), repeatdelay=1000, repeatinterval=100)
 
 page_scrollbar = Scrollbar(page_frame)
 page_canvas = Canvas(page_frame, bg ='#FFFFFF')
 
-console_canvas = advCanvas(console_frame, bg ='#FFFFFF', width=150)
 console_scrollbar = Scrollbar(console_frame)
+console_canvas = advCanvas(console_frame, bg ='#FFFFFF', width=150, yscrollcommand = console_scrollbar.set)
 console_entry = tkinter.Entry(console_frame)
+
+console_scrollbar['command'] = console_canvas.yview
 
 execB = tkinter.Button(console_frame, text = "exec",
 	overrelief="solid", width=5, command=lambda: execCallback(), repeatdelay=1000, repeatinterval=100)
 
+def loadCallback():
+	pass
+
+def getCallback():
+	pass
+
+def postCallback():
+	pass
+
+def putCallback():
+	pass
 
 def execCallback():
 	# console_canvas.create_text(2, 0, anchor=NW, text = 'hi')

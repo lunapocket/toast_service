@@ -18,7 +18,8 @@ class advCanvas(Canvas):
 				beforeCoord = self.bbox(self.objs[self.objCount - 1]) #바로 이전 친구 참조
 				x = self.x; y = beforeCoord[3] + yoffset
 
-			
+		self.config(scrollregion = (0,0, 0, y + 20))
+		self.yview_moveto(y + 20)
 
 		if type == 'text':
 			objTemp = self.create_text(x, y, anchor=NW, text = content, tags = str(self.objCount), width = self.winfo_width() * 0.9)
@@ -34,7 +35,6 @@ class advCanvas(Canvas):
 			tkimage = ImageTk.PhotoImage(image)
 			self.imagetemp.append(tkimage)
 			objTemp = self.create_image(x, y, anchor=NW, image = tkimage, tags = str(self.objCount))
-
 
 		self.objs.append(objTemp);
 		self.objCount = self.objCount + 1
