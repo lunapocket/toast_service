@@ -50,12 +50,15 @@ def execCallback():
 	cmd = console_entry.get()
 
 	console_canvas.writeNextObject(content = '>> ' + cmd)
-	eval(cmd)
-	content = mystdout.getvalue()
-	if(len(content) == 0):
-		eval('print('+ cmd +')')
+	try:
+		eval(cmd)
 		content = mystdout.getvalue()
-	console_canvas.writeNextObject(content = content)
+		if(len(content) == 0):
+			eval('print('+ cmd +')')
+			content = mystdout.getvalue()
+		console_canvas.writeNextObject(content = content)
+	except:
+		pass
 	mystdout.close()
 
 	console_entry.delete(0, END)

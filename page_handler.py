@@ -5,24 +5,15 @@ import bs4
 
 from autolog import autolog, call_log_class, call_log_class_soft, blogger
 
+
 @call_log_class
-class Browser():
+class RequestHandler():
 	default_port = 80
+	default_headers = None
 
-	def __init__(self, UA = '', default_port = 80):
-		self.UA = UA
-		self.default_port = default_port
-
-	def load_page(self, url = ''):
-		pass
-		# self.page = page(url)
-
-@call_log_class
-class RequestHandler(Browser):
-
-	def __init__(url = None):
-		if(url) self.addr = url
-		self.default_headers = {'user-agent': self.UA}
+	def __init__(self, url = None):
+		if(url is not None):
+		    self.addr = url
 
 	@property
 	def addr(self):
@@ -65,14 +56,14 @@ class RequestHandler(Browser):
 		return r
 
 
-	def do_post(self, URL = addr, data = '', headers = default_headrs):
+	def do_post(self, URL = addr, data = '', headers = default_headers):
 		self.addr = URL
 		r = requests.post(self.addr, data = data, headers = headers)
 		r.raise_for_status()
 
 		return r
 
-	def do_put(self, URL = addr, data = '', headers = default_headrs):
+	def do_put(self, URL = addr, data = '', headers = default_headers):
 		self.addr = URL;
 		r = requests.put(self.addr, data = data, headers = headers)
 		r.raise_for_status()
@@ -81,6 +72,20 @@ class RequestHandler(Browser):
 
 	def parseHTML():
 		pass
+
+@call_log_class
+class Browser(RequestHandler):
+	def __init__(self, UA = '', default_port = 80):
+		super(Browser, self).__init__()
+
+		self.UA = UA
+		self.default_port = default_port
+
+		self.default_headers = {'user-agent': self.UA}
+
+	def load_page(self, url = ''):
+		pass
+		# self.page = page(url)
 
 if __name__ == '__main__':
 	b = Browser()
