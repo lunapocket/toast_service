@@ -1,6 +1,14 @@
 import tkinter
 from tkinter import *
 
+from io import StringIO
+import sys
+
+from canvasUI import advCanvas
+
+from autolog import blogger
+
+
 window=tkinter.Tk()
 
 
@@ -27,13 +35,30 @@ putB = tkinter.Button(content, text = "put",
 page_scrollbar = Scrollbar(page_frame)
 page_canvas = Canvas(page_frame, bg ='#FFFFFF')
 
-console_canvas = Canvas(console_frame, bg ='#FFFFFF', width=150)
+console_canvas = advCanvas(console_frame, bg ='#FFFFFF', width=150)
 console_scrollbar = Scrollbar(console_frame)
 console_entry = tkinter.Entry(console_frame)
 
 execB = tkinter.Button(console_frame, text = "exec",
-	overrelief="solid", width=5, command=None, repeatdelay=1000, repeatinterval=100)
+	overrelief="solid", width=5, command=lambda: execCallback(), repeatdelay=1000, repeatinterval=100)
 
+
+def execCallback():
+	# console_canvas.create_text(2, 0, anchor=NW, text = 'hi')
+	oldstdout = sys.stdout
+	sys.stdout = mystdout = StringIO()
+	cmd = console_entry.get()
+
+	console_canvas.writeNextObject(content = '>> ' + cmd)
+	eval(cmd)
+	content = mystdout.getvalue()
+	if(len(content) == 0):
+		eval('print('+ cmd +')')
+		content = mystdout.getvalue()
+	console_canvas.writeNextObject(content = content)
+	mystdout.close()
+
+	console_entry.delete(0, END)
 
 content.grid(row = 0, column = 0, sticky = (N, S, E ,W))
 addr_label.grid(row = 0, column = 0, sticky = W)
@@ -68,4 +93,8 @@ page_frame.rowconfigure(0, weight=99)
 
 console_frame.columnconfigure(0, weight=99)
 console_frame.rowconfigure(0, weight=99)
-window.mainloop()
+
+#exec은 간단하므로 여기에 구현
+
+if __name__ == '__main__':
+	window.mainloop()
