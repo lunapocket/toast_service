@@ -35,7 +35,9 @@ class UI():
 		overrelief="solid", width=5, command=lambda: putCallback(), repeatdelay=1000, repeatinterval=100)
 
 	page_scrollbar = Scrollbar(page_frame)
-	page_canvas = Canvas(page_frame, bg ='#FFFFFF')
+	page_canvas = advCanvas(page_frame, bg ='#FFFFFF', yscrollcommand = page_scrollbar.set)
+
+	page_scrollbar['command']= page_canvas.yview
 
 	console_scrollbar = Scrollbar(console_frame)
 	console_canvas = advCanvas(console_frame, bg ='#FFFFFF', width=150, yscrollcommand = console_scrollbar.set)

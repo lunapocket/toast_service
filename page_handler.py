@@ -37,7 +37,7 @@ class RequestHandler(object):
 
 		if(len(parsed.netloc) == 0 and parsed.path[0] == '/'): #/path 의 경우 현재 내가 접속한 곳을 기준으로 바꾼다.
 				new_path = parsed.path
-				parsed = old_addr
+				parsed = urlparse(self.addr)
 				parsed = parsed._replace(path = new_path)
 
 		try: #url 자체가 port 번호를 가지고 있는지 파악, port번호가 없으면 port 번호를 받아서 넘겨준다.(기본 80)
@@ -70,29 +70,46 @@ class RequestHandler(object):
 
 @call_log_class
 class Browser(RequestHandler):
-
+	default_headers = {}
 	def __init__(self, url = '', UA = '', default_port = 80):
 		super().__init__()
 
 		self.UA = UA
 		self.default_port = default_port
-
-		self.default_headers = {'user-agent': self.UA}
+		if UA:
+			self.default_headers['user-agent'] = self.UA
 
 	def load_page(self, url = ''):
 		self.image_bytes = {};
-		self.addr = URL
+		self.addr = url
 
 		r = self.do_get(url)
 		_type = self._get_type(r)
 		if(_type == 'text'):
 			soup = BeautifulSoup(r.text,'html.parser')
-			for tag in find_all('img'):
-				image_bytes[tag['src']] = self.do_get(tag['src']).content
+			for tag in soup.find_all('img'):
+				self.image_bytes[tag['src']] = self.do_get(tag['src']).content
 		if(_type == 'image'):
-			image_bytes[urlparse(self.addr).path] = self.do_get(tag['src']).content
+			self.image_bytes[urlparse(self.addr).path] = r.content
 
 		return r.content
+
+	def do_request(self, URL = '', params = '', headers = default_headers, type = 'get'):
+		if(type == 'get'):
+			r = self.do_get(URL, params, headers)
+		elif(type == 'post'):
+			r = self.do_post(URL, params, headers)
+		elif(type == 'put'):
+			r = self.do_put(URL, params, headers)
+
+		self._type = self._get_type(r)
+
+		if(self._type == 'text'):
+			content = r.text
+		else:
+			content = r.content
+
+		return content
 
 	def _get_type(self, r): #image or text 반환
 		try:

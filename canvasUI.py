@@ -1,16 +1,17 @@
 import tkinter
 from tkinter import *
+from io import BytesIO
 
 from PIL import Image, ImageTk
 
 from autolog import blogger
 
 class advCanvas(Canvas):
-	objCount = 0; #tag 대신 사용
-	objs = [];
-	imagetemp = [];
+	objCount = 0 #tag 대신 사용
+	objs = []
+	imagetemp = []
 
-	def writeNextObject(self, type = 'text', content = '', xoffset = 0, yoffset = 5, startx = 2):
+	def writeNextObject(self, type = 'text', content = '', xoffset = 0, yoffset = 5, startx = 2, expandscroll=True, io = True):
 		self.x = startx
 		if self.objCount == 0:
 			x = self.x; y = 1;
@@ -18,15 +19,14 @@ class advCanvas(Canvas):
 				beforeCoord = self.bbox(self.objs[self.objCount - 1]) #바로 이전 친구 참조
 				x = self.x; y = beforeCoord[3] + yoffset
 
-		self.config(scrollregion = (0,0, 0, y + 20))
-		self.yview_moveto(y + 20)
-
 		if type == 'text':
 			objTemp = self.create_text(x, y, anchor=NW, text = content, tags = str(self.objCount), width = self.winfo_width() * 0.9)
 
-		if type == 'img':
+		if type == 'image':
 			if(content == ''):
 				image = Image.open(r'./files/bmo.jpg')
+			elif io:
+				image = Image.open(BytesIO(content))
 			else:
 				image = Image.open(content)
 			
@@ -37,4 +37,15 @@ class advCanvas(Canvas):
 			objTemp = self.create_image(x, y, anchor=NW, image = tkimage, tags = str(self.objCount))
 
 		self.objs.append(objTemp);
-		self.objCount = self.objCount + 1
+		self.objCount = self.objCount + 1   
+
+		afterCoord = self.bbox(self.objs[self.objCount - 1])
+		self.config(scrollregion = (0,0, 0, afterCoord[3]))
+		if expandscroll:
+			self.yview_moveto(afterCoord[3] + 20)
+
+	def clear(self):
+		self.delete('all')
+		self.objCount = 0
+		self.objs = []
+		self.imagetemp = []
