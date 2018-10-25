@@ -13,6 +13,9 @@ class RequestHandler(object):
 	default_headers = None
 
 	def __init__(self, url = None, UA = '', default_port = ''):
+		self.s = requests.Session()
+		self.a = requests.adapters.HTTPAdapter(pool_connections = 1, pool_maxsize = 1, pool_block=True)
+		self.s.mount('http://', self.a)
 		if(url is not None):
 		    self.addr = url
 
@@ -49,21 +52,21 @@ class RequestHandler(object):
 
 	def do_get(self, URL = addr, params = '', headers = default_headers):
 		self.addr = URL #URL을 형식에 맞게 갱신
-		r = requests.get(self.addr, params = params, headers = headers)
+		r = self.s.get(self.addr, params = params, headers = headers)
 		r.raise_for_status()
 
 		return r
 
 	def do_post(self, URL = addr, data = '', headers = default_headers):
 		self.addr = URL
-		r = requests.post(self.addr, data = data, headers = headers)
+		r = self.s.post(self.addr, data = data, headers = headers)
 		r.raise_for_status()
 
 		return r
 
 	def do_put(self, URL = addr, data = '', headers = default_headers):
 		self.addr = URL;
-		r = requests.put(self.addr, data = data, headers = headers)
+		r = self.s.put(self.addr, data = data, headers = headers)
 		r.raise_for_status()
 
 		return r
