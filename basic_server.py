@@ -71,6 +71,6 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
 
 
 if __name__ == '__main__':
-	address = ('192.168.200.113', 8192) #let the kernal give us a port
+	address = ('127.0.0.1', 8192) #let the kernal give us a port
 	server = ThreadedHTTPServer(address, ThreadedHTTPRequestHandler)
 	server.serve_forever()

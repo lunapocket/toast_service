@@ -1,3 +1,5 @@
+import sys
+from io import StringIO
 from ast import literal_eval
 
 from browser_UI import *
@@ -92,7 +94,7 @@ class run(UI, Browser):
 		self.console_entry.delete(0, END)
 
 if __name__ == '__main__':
-	b = run(UA = '2013034135/JiHoonLee/Browser/COMNET2018')
+	b = run(UA = '2013034135/JiHoonLee/WEBCLIENT/COMPUTERNETWORK')
 	# b.addr_bar.insert(0, 'httpbin.org/get')
 	# b.loadCallback()
 	b.window.mainloop()

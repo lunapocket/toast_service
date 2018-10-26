@@ -1,9 +1,6 @@
 import tkinter
 from tkinter import *
 
-from io import StringIO
-import sys
-
 from canvasUI import advCanvas
 from page_handler import *
 
@@ -87,8 +84,6 @@ class UI():
 
 	console_frame.columnconfigure(0, weight=99)
 	console_frame.rowconfigure(0, weight=99)
-
-#exec은 간단하므로 여기에 구현
 
 if __name__ == '__main__':
 	window.mainloop()

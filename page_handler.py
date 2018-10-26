@@ -1,11 +1,21 @@
 from urllib.parse import urlparse, urlunparse, urljoin
-import tempfile
 
 import requests
 from bs4 import BeautifulSoup
 
 from autolog import autolog, call_log_class, call_log_class_soft, blogger
 
+# class HTTPAdapterWithSocketOptions(requests.adapters.HTTPAdapter):
+# 	#from https://stackoverflow.com/questions/15148225/is-it-possible-to-override-the-default-socket-options-in-requests
+# 	#to restrict socket port for marking purpose
+#     def __init__(self, *args, **kwargs):
+#         self.socket_options = kwargs.pop("socket_options", None)
+#         super(HTTPAdapterWithSocketOptions, self).__init__(*args, **kwargs)
+
+#     def init_poolmanager(self, *args, **kwargs):
+#         if self.socket_options is not None:
+#             kwargs["socket_options"] = self.socket_options
+#         super(HTTPAdapterWithSocketOptions, self).init_poolmanager(*args, **kwargs)
 
 @call_log_class
 class RequestHandler(object):
@@ -14,7 +24,7 @@ class RequestHandler(object):
 
 	def __init__(self, url = None, UA = '', default_port = ''):
 		self.s = requests.Session()
-		self.a = requests.adapters.HTTPAdapter(pool_connections = 1, pool_maxsize = 1, pool_block=True)
+		self.a = requests.adapters.HTTPAdapter() #pool_connections = 1, pool_maxsize = 1, pool_block=False)
 		self.s.mount('http://', self.a)
 		if(url is not None):
 		    self.addr = url
