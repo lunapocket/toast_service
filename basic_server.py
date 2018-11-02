@@ -4,9 +4,37 @@ import threading
 import os
 from urllib.parse import urlparse
 
+import ssl
 
 from autolog import autolog, call_log_class, call_log_class_soft
 # logger.getlogger
+
+@call_log_class
+class securedHTTPServer(HTTPServer):
+	'''https://stackoverflow.com/questions/8582766/adding-ssl-support-to-socketserver'''
+	'''python official docs about ssl'''
+	def __init__(self, server_address, RequestHandlerClass, 
+			certfile = None, keyfile = None, 
+			ssl_version=ssl.PROTOCOL_TLS, bind_and_activate=True):
+
+		HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
+		self.certfile = certfile
+		self.keyfile = keyfile
+		self.ssl_version = ssl_version
+		if certfile == None:
+			self.context = None
+		else:
+			self.context = ssl.SSLContext(protocol = ssl_version)
+			self.context.load_cert_chain(certfile = certfile, keyfile = keyfile)
+
+	def get_request(self):
+		if self.context == None:
+			return super().get_request() #인증서 정보가 없으면 기본 연결 사용
+		newsocket, fromaddr = self.socket.accept()
+		# blogger.info("new socket set")
+		connstream = self.context.wrap_socket(newsocket, server_side = True)
+
+		return connstream, fromaddr
 
 @call_log_class
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -14,8 +42,6 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
 		BaseHTTPRequestHandler.__init__(self, request, client_address, server)
-		
-		
 
 		print(self.request_version)
 
@@ -48,8 +74,6 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 			self.send_header('Content-Length', '1024')
 			self.end_headers()
 		# message = bytes(self.requestline,'utf8')
-		
-		
 
 		return
 
@@ -66,11 +90,12 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		return doc
 	
 @call_log_class_soft
-class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, securedHTTPServer):
 	pass
 
 
 if __name__ == '__main__':
 	address = ('127.0.0.1', 8192) #let the kernal give us a port
-	server = ThreadedHTTPServer(address, ThreadedHTTPRequestHandler)
+	server = ThreadedHTTPServer(address, ThreadedHTTPRequestHandler, 
+		certfile="c://temp/keys/toast2_cert.pem", keyfile="c://temp/keys/toast2_key.pem")
 	server.serve_forever()
