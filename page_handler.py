@@ -140,3 +140,4 @@ class Browser(RequestHandler):
 if __name__ == '__main__':
 	b = Browser(UA = '2013034135/JiHoonLee/Browser/COMNET2018', default_port = 80)
 	b.addr = 'www.naver.com/asdf/asdf.png'
+	r = requests.get("https://127.0.0.1:8192/index.html")
