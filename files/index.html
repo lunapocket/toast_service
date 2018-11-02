@@ -1,6 +1,17 @@
 <html>
-<title>THIS IS TEST PAGE</title>
+<header>
+<title>Toast: UPLOAD WHATEVER YOU NEED!</title>
+<link rel="stylesheet" href="form.css">
+</header>
 <body>
-	HELLO TEST PAGE!
+	<form action="/upload" method="post">
+		<div><label for="file">UPLOAD : </label><input type="file" id="file"></div>
+		<div><label for="time">TIME Expire (YMD his) :</label><input type="text" id="time"></div>
+		<div><label for="password">PASSWORD(OPTIONAL) :</label><input type="password" id="password"></div>
+
+		<div class="button">
+    	    <button type="submit">Upload!</button>
+	    </div>
+	</form>
 </body>
 </html>
