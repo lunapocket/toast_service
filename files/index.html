@@ -1,6 +1,53 @@
-<html>
-<title>THIS IS TEST PAGE</title>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Toast: UPLOAD WHATEVER YOU NEED!</title>
+<link rel="stylesheet" href="form.css">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script type="text/javascript">
+	$(document).ready( function () {
+		$('form').submit( function (e) {
+			e.preventDefault();
+			// var formdata = $(this)[0];
+			var data = new FormData($('form')[0]);
+			data.append("file", $("#file")[0].files[0]);
+			data.append("time_expire", $("#time").val());
+			data.append("PASSWD", $("#password").val());
+			console.log(data);
+			$.ajax({
+			    type: "POST",
+			    url: "http://httpbin.org/anything",
+			    enctype: 'multipart/form-data',
+			    data: data,
+			    processData: false,
+			    contentType: false,
+			    cache: false,
+			    success: function (data) {
+
+	                console.log("SUCCESS : ", data);
+
+            	},
+            	error: function (e) {
+
+                	console.log("ERROR : ", e);
+
+	            }
+
+			 });
+			return false;
+		});
+	});
+</script>
+</head>
 <body>
-	HELLO TEST PAGE!
+	<form accept-charset=utf-8>
+		<div><label for="file">UPLOAD : </label><input type="file" id="file"></div>
+		<div><label for="time">TIME Expire (YMD his) :</label><input type="text" id="time"></div>
+		<div><label for="password">PASSWORD(OPTIONAL) :</label><input type="password" id="password"></div>
+
+		<div class="button">
+    	    <button type="submit">Upload!</button>
+	    </div>
+	</form>
 </body>
 </html>
