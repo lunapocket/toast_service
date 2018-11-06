@@ -4,39 +4,41 @@
 <title>Toast: UPLOAD WHATEVER YOU NEED!</title>
 <link rel="stylesheet" href="form.css">
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script type="text/javascript" src="send.js"></script>
 <script type="text/javascript">
-	$(document).ready( function () {
-		$('form').submit( function (e) {
-			e.preventDefault();
-			// var formdata = $(this)[0];
-			var data = new FormData($('form')[0]);
-			data.append("file", $("#file")[0].files[0]);
-			data.append("time_expire", $("#time").val());
-			data.append("PASSWD", $("#password").val());
-			console.log(data);
-			$.ajax({
-			    type: "POST",
-			    url: "http://httpbin.org/anything",
-			    enctype: 'multipart/form-data',
-			    data: data,
-			    processData: false,
-			    contentType: false,
-			    cache: false,
-			    success: function (data) {
 
-	                console.log("SUCCESS : ", data);
-
-            	},
-            	error: function (e) {
-
-                	console.log("ERROR : ", e);
-
-	            }
-
-			 });
-			return false;
-		});
+	$(document).ready(function() {
+		$('form').submit(uploadFile);
 	});
+
+	function uploadFile(e){
+		e.preventDefault();
+
+		var data = new FormData();
+			
+		data.append('time-expire', $('#time').val());
+		data.append('password', $('#password').val());
+
+		var url = 'http://httpbin.org/anything'; 
+		var f =  document.getElementById('file');
+
+		$.ajax({
+			url: url,
+			data: data,
+			type: 'POST',
+			processData: false,
+			contentType: 'multipart/form-data',
+			mimeType: 'multipart/from-data',
+			success: function(data){
+				console.log('success');
+			},
+			error: function(data){
+				console.log('failed');
+			}
+		});
+
+		slice_and_send(f, url);
+	}
 </script>
 </head>
 <body>

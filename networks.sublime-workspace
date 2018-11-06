@@ -424,7 +424,7 @@
 			]
 		]
 	],
-	"build_varint": "",
+	"build_varint": "Run",
 	"command_palette":
 	{
 		"height": 440.0,
@@ -1005,12 +1005,6 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
-	"expanded_folders":
-	[
-		"/C/Users/lunap/OneDrive/Log/2018.Q2(06-09)/컴네/hw",
-		"/C/Users/lunap/OneDrive/Log/2018.Q2(06-09)/컴네/hw/04",
-		"/C/Users/lunap/OneDrive/Log/2018.Q2(06-09)/컴네/hw/04/networks-basic-server"
-	],
 	"file_history":
 	[
 		"/C/Users/lunap/OneDrive/Log/2018.Q2(06-09)/컴네/hw/04/networks-basic-server/basic_server.py",
@@ -1700,6 +1694,10 @@
 		"selected_items":
 		[
 			[
+				"",
+				"C:\\Users\\lunap\\OneDrive\\Log\\2018.Q2(06-09)\\컴네\\network-hw.sublime-project"
+			],
+			[
 				"dyeon",
 				"D:\\dyeon\\dyeon.sublime-project"
 			],
@@ -1718,10 +1716,6 @@
 			[
 				"widget",
 				"C:\\Users\\lunap\\OneDrive\\Log\\2018.Q2(06-09)\\휴비즈\\treemoment\\widgets\\treemoment widgets.sublime-workspace"
-			],
-			[
-				"",
-				"C:\\mapper\\one\\Log\\2017.Q2(03-06)\\위한\\weehanAddon.sublime-project"
 			],
 			[
 				"wee",

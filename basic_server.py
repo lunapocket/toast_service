@@ -58,7 +58,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		if self.request_version == "HTTP/1.1":
 			if message != 0:
 				self.send_response(200)
-				self.send_header('Content-Length', '1024')
+				# self.send_header('Content-Length', '1024')
 				if file_extension == '.jpg':
 					self.send_header('Content-Type', 'image/jpeg')
 				else:
@@ -67,16 +67,17 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 				self.wfile.write(message)
 			else:
 				self.send_response(404)
-				self.send_header('Content-Length', '1024')
+				# self.send_header('Content-Length', '1024')
 				self.end_headers()
 		else:
 			self.send_response(400)
-			self.send_header('Content-Length', '1024')
+			# self.send_header('Content-Length', '1024')
 			self.end_headers()
 		# message = bytes(self.requestline,'utf8')
 
 		return
 
+	def do_POST(self):
 	
 	def _getFile(self, filename):
 		path = os.path.abspath("./files/" + filename)
