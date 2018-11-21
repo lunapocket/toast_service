@@ -1,6 +1,6 @@
 // https://gist.github.com/shiawuen/1534477
 
-function slice_and_send(f, url) {
+function slice_and_send(f, url, new_url) {
 
 if (f.files.length)
   processFile();
@@ -8,7 +8,7 @@ if (f.files.length)
 function processFile(e) {
   var file = f.files[0];
   var size = file.size;
-  var sliceSize = 1024768;
+  var sliceSize = framesize;
   var start = 0;
 
   setTimeout(loop, 1);
@@ -32,7 +32,7 @@ function processFile(e) {
 }
 
 
-function send(piece, start, end, url) {
+function send(piece, start, end, url, new_url) {
   var formdata = new FormData();
   var xhr = new XMLHttpRequest();
 
@@ -40,6 +40,7 @@ function send(piece, start, end, url) {
 
   formdata.append('start', start);
   formdata.append('end', end);
+  formdata.append('key', new_url)
   formdata.append('file', piece);
 
   xhr.send(formdata);

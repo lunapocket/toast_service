@@ -24,6 +24,7 @@ class securedHTTPServer(HTTPServer):
 			ssl_version=ssl.PROTOCOL_TLS, bind_and_activate=True):
 
 		HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
+
 		self.certfile = certfile
 		self.keyfile = keyfile
 		self.ssl_version = ssl_version
@@ -132,5 +133,5 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, securedHTTPServer):
 if __name__ == '__main__':
 	address = ('127.0.0.1', 8192) #let the kernal give us a port
 	server = ThreadedHTTPServer(address, ThreadedHTTPRequestHandler, 
-		certfile="c://temp/keys/toast2_cert.pem", keyfile="c://temp/keys/toast2_key.pem")
+		certfile="c://temp/keys/toast2_cert.pem", keyfile="c://temp/keys/toast2_key.pem", f)
 	server.serve_forever()

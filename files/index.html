@@ -15,12 +15,17 @@
 		e.preventDefault();
 
 		var data = new FormData();
-			
-		data.append('time-expire', $('#time').val());
-		data.append('password', $('#password').val());
 
 		var url = '/uploadFile'; 
 		var f =  document.getElementById('file');
+		
+		var framesize = 1024768;
+
+		data.append('file_name', f.files[0].name);
+		data.append('time_expire', $('#time').val());
+		data.append('password', $('#password').val());
+		data.append('frame_size', Math.ceil(f.files.length / framesize));
+
 
 		$.ajax({
 			url: url,
@@ -30,6 +35,7 @@
 			contentType: false,
 			// mimeType: 'multipart/from-data',
 			success: function(data){
+				slice_and_send(f, url, 123); //123 대신 key를 return 받아서 넣어야 합니다.
 				console.log('success');
 			},
 			error: function(data){
@@ -37,7 +43,7 @@
 			}
 		});
 
-		slice_and_send(f, url);
+		
 	}
 </script>
 </head>
