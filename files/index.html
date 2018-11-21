@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <title>Toast: UPLOAD WHATEVER YOU NEED!</title>
 <link rel="stylesheet" href="form.css">
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 <script type="text/javascript" src="send.js"></script>
 <script type="text/javascript">
 
@@ -19,7 +19,7 @@
 		data.append('time-expire', $('#time').val());
 		data.append('password', $('#password').val());
 
-		var url = 'http://httpbin.org/anything'; 
+		var url = '/uploadFile'; 
 		var f =  document.getElementById('file');
 
 		$.ajax({
@@ -27,8 +27,8 @@
 			data: data,
 			type: 'POST',
 			processData: false,
-			contentType: 'multipart/form-data',
-			mimeType: 'multipart/from-data',
+			contentType: false,
+			// mimeType: 'multipart/from-data',
 			success: function(data){
 				console.log('success');
 			},

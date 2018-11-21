@@ -1,7 +1,16 @@
 import cgi
 from io import BytesIO as IO
 
-class MultiForm():
+class MultiForm(object):
+
+	def __init__(self, headers, body):
+		parsed = cgi.FieldStorage(IO(body.encode('utf-8')), headers = headers3, environ = environ)
+
+	def headers_to_dict(self):
+		'''[('Host', '127.0.0.1:8192'), ('User-Agent', 'Mozilla/5.0')] 형태를 dict로 변경'''
+
+
+
 	
 
 
@@ -75,6 +84,8 @@ value1
 	headers2 ={'content-type': 'multipart/form-data; boundary=---------------------------265001916915724', 'content-length': len(body)}
 	headers3 ={'content-type': 'multipart/form-data; boundary=---------------------------146043902153', 'content-length': len(body)}
 	environ={'REQUEST_METHOD': 'POST'}
+
+	input_headers = [('Host', '127.0.0.1:8192'), ('User-Agent', 'Mozilla/5.0')]
 
 	parsed = cgi.FieldStorage(IO(body.encode('utf-8')), headers = headers3, environ = environ)
 	# parsed2 = cgi.parse_multipart(IO(body.encode('utf-8')), pdict = headers2)

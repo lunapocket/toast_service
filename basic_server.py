@@ -6,13 +6,18 @@ from urllib.parse import urlparse
 
 import ssl
 
-from autolog import autolog, call_log_class, call_log_class_soft
+import cgi
+from io import BytesIO as IO
+
+from autolog import autolog, call_log_class, call_log_class_soft, blogger
 # logger.getlogger
 
-@call_log_class
+# @call_log_class
 class securedHTTPServer(HTTPServer):
-	'''https://stackoverflow.com/questions/8582766/adding-ssl-support-to-socketserver'''
-	'''python official docs about ssl'''
+	'''
+	https://stackoverflow.com/questions/8582766/adding-ssl-support-to-socketserver
+	python official docs about ssl
+	'''
 	def __init__(self, server_address, RequestHandlerClass, 
 			certfile = None, keyfile = None, 
 			ssl_version=ssl.PROTOCOL_TLS, bind_and_activate=True):
@@ -36,15 +41,16 @@ class securedHTTPServer(HTTPServer):
 
 		return connstream, fromaddr
 
-@call_log_class
+# @call_log_class
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
 		BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+		# blogger.info(self.headers.__dict__)
+		#'self._headers': [('Host', '127.0.0.1:8192'), ('User-Agent', 'Mozilla/5.0')]... '''
 
-		print(self.request_version)
-
+		# print(self.request_version) 
 
 		return  
 
@@ -52,13 +58,11 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		self.parsed_path = urlparse(self.path)
 		filepath = self.parsed_path.path
 		filename, file_extension = os.path.splitext(filepath)
-		
 		message = self._getFile(filepath)
 
 		if self.request_version == "HTTP/1.1":
 			if message != 0:
 				self.send_response(200)
-				# self.send_header('Content-Length', '1024')
 				if file_extension == '.jpg':
 					self.send_header('Content-Type', 'image/jpeg')
 				else:
@@ -67,17 +71,33 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 				self.wfile.write(message)
 			else:
 				self.send_response(404)
-				# self.send_header('Content-Length', '1024')
 				self.end_headers()
 		else:
 			self.send_response(400)
-			# self.send_header('Content-Length', '1024')
 			self.end_headers()
 		# message = bytes(self.requestline,'utf8')
 
 		return
 
 	def do_POST(self):
+		# multipart 오브젝트가 가지고 있어야 할 것 
+		content_length = int(self.headers.get('content-length', 0))
+		body = self.rfile.read(content_length)
+		environ={'REQUEST_METHOD': 'POST'}
+
+		print(self.headers.get('content-type'))
+		print(self.client_address)
+
+		if('multipart/form-data' in self.headers.get('content-type')):
+			parsed = cgi.FieldStorage(IO(body), headers = self.headers, environ = environ)
+
+			# print(parsed)
+			
+
+		# print('---- start')
+		# print(self.headers['content-length'])
+		# print('---- end')
+		return
 	
 	def _getFile(self, filename):
 		path = os.path.abspath("./files/" + filename)
@@ -90,7 +110,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
 		return doc
 	
-@call_log_class_soft
+# @call_log_class_soft
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, securedHTTPServer):
 	pass
 
