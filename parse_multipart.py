@@ -8,11 +8,17 @@ class MultiForm(object):
 
 	def headers_to_dict(self):
 		'''[('Host', '127.0.0.1:8192'), ('User-Agent', 'Mozilla/5.0')] 형태를 dict로 변경'''
+		pass
 
 
 
-	
+def _parse_multipart(fs):
+	data = {}
 
+	for element in fs.list:
+		data[element.name] = element.value
+
+	return data
 
 
 if __name__ == '__main__':

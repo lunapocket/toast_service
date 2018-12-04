@@ -9,6 +9,7 @@ import ssl
 import cgi
 from io import BytesIO as IO
 
+from file_manager import Record
 from autolog import autolog, call_log_class, call_log_class_soft, blogger
 # logger.getlogger
 
@@ -44,13 +45,17 @@ class securedHTTPServer(HTTPServer):
 # @call_log_class
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
+	active_record = {} #key and other info
+	record_lock = threading.Lock()
+	db_lock = threading.Lock()
+
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
 		BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 		# blogger.info(self.headers.__dict__)
 		#'self._headers': [('Host', '127.0.0.1:8192'), ('User-Agent', 'Mozilla/5.0')]... '''
 
-		# print(self.request_version) 
+		# print(self.request_version)
 
 		return  
 
@@ -98,8 +103,17 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		# print(self.headers['content-length'])
 		# print('---- end')
 		return
+
+	def _parse_multipart(self, fs):
+		'''fieldstorage -> dict'''
+		data = {}
+		for element in fs.list:
+			data[element.name] = element.value
+
+		return data		
 	
 	def _getFile(self, filename):
+		'''get and read file and return the bytestring '''
 		path = os.path.abspath("./files/" + filename)
 		
 		try:
