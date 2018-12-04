@@ -107,7 +107,8 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 			writer.writerow(data)
 			cls.active_db.append(data)
 			cls.DB_FILE.flush()
-			# print(cls.active_db)
+			print(cls.active_db)
+			
 
 	@classmethod
 	def get_active_db_record(cls, key):

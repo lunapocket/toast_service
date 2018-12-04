@@ -29,6 +29,8 @@ function processFile(e) {
     if (end < size) {
       start += sliceSize;
       setTimeout(loop, 1);
+    } else {
+      done();
     }
   }
 }
@@ -62,6 +64,12 @@ function slice(file, start, end) {
 
 function noop() {
   
+}
+
+function done() {
+  var s = location.protocol + '//' + location.hostname + ':' + location.port + '/get/' + new_url;
+  $('#done').html("SUCCESS and FILE URL IS " + "<a href = \"" + s + "\">" + s + "</a>");
+
 }
 
 }
