@@ -70,3 +70,13 @@ def call_log_class_soft(Cls):
 			else:
 				return x
 	return NewCls
+
+
+if __name__ == '__main__':
+	import os, csv
+
+	f = open(os.getcwd() + "/files/filelist.csv", "w")
+	writer = csv.writer(f)
+	writer.writerow(['123', '123', '123', '123'])
+	
+	

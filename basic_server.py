@@ -3,6 +3,7 @@ import socketserver
 import threading
 import os
 import tempfile
+import csv
 from urllib.parse import urlparse
 
 import ssl
@@ -47,10 +48,14 @@ class securedHTTPServer(HTTPServer):
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
 	STORAGE_DIR = os.getcwd() + '/files/storage/'
+	DB_PATH = os.getcwd() + '/files/filelist.csv'
+	DB_FILE = open(DB_PATH, 'w', newline='', encoding = 'utf-8')
 
 	_active_record = {} #tempfile key / filename, time_expire, password, framesize, written_frame,size
 	record_lock = threading.Lock()
 	db_lock = threading.Lock()
+
+	active_db = []
 
 	@classmethod
 	def set_active_record(cls, input = None):
@@ -83,9 +88,21 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 				pass
 
 	@classmethod
-	def _update_db(cls, record):
+	def _update_db(cls, key, record):
 		with cls.db_lock:
-			pass
+			writer = csv.writer(cls.DB_FILE, delimiter = ',')
+			data = [key, record['file_name'], record['time_expire'], record['password']]
+			writer.writerow(data)
+			cls.active_db.append(data)
+			cls.DB_FILE.flush()
+			# print(cls.active_db)
+	
+	@classmethod
+	def _dump_csv(cls):
+		with open(DB_PATH, 'r', encoding = 'utf-8') as f:
+			reader = csv.reader(f)
+			active_db = list(reader)
+			print(active_db)
 
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
@@ -93,6 +110,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		# blogger.info(self.headers.__dict__)
 		#'self._headers': [('Host', '127.0.0.1:8192'), ('User-Agent', 'Mozilla/5.0')]... '''
 
+		#!! load CSV into ram to search it
 		# print(self.request_version)
 
 		return  
@@ -123,7 +141,6 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		return
 
 	def do_POST(self):
-
 		form = cgi.FieldStorage(
 				fp = self.rfile,
 				headers = self.headers,
@@ -153,6 +170,11 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		data['written_frame_size'] = 0
 		data['lock'] = threading.Lock()
 
+		if data['time_expire'] == '':
+			data['time_expire'] = 'NULL'
+		if data['password'] == '':
+			data['password'] = 'NULL'
+
 		self.set_active_record({key:data})
 		self.send_response(200)
 		self.send_header('content-length', len(key.encode('utf-8')))
@@ -172,12 +194,18 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		key = data['key']
 		record = self.get_active_record()[key]
 		self.del_active_record(key)
-		self._update_db(record)
+		self._update_db(key, record)
+
+	def error_recv(self, data):
+		self.send_response(404)
 
 	def _write_file(self, key, start, content):
-		data = self.get_active_record()[key]
+		try: 
+			data = self.get_active_record()[key]
+		except KeyError:
+			self.error_recv() #fail handling in fron side
 
-		print(data)
+		# print(data)
 
 		with data['lock']:
 			data['fp'].seek(int(start))
@@ -187,7 +215,6 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 				return 0 #meaning that process is finished
 			else:
 				return 1
-
 
 	def _parse_multipart(self, fs):
 		'''fieldstorage -> dict'''
