@@ -5,9 +5,13 @@
 <link rel="stylesheet" href="form.css">
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 <script type="text/javascript" src="send.js"></script>
+<script type="text/javascript" src="dateformat.js"></script>
 <script type="text/javascript">
 
 	$(document).ready(function() {
+		var now = new Date();
+		var expiredate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14);
+		document.getElementById('time').value = expiredate.format('yyyymmddHHMM')
 		$('form').submit(uploadFile);
 	});
 
@@ -21,10 +25,12 @@
 		
 		var framesize = 1024768;
 
+		var framelength = Math.ceil(f.files[0].size / framesize)
+
 		data.append('file_name', f.files[0].name);
 		data.append('time_expire', $('#time').val());
 		data.append('password', $('#password').val());
-		data.append('frame_size', Math.ceil(f.files[0].size / framesize));
+		data.append('frame_size', framelength);
 
 
 		$.ajax({
@@ -35,7 +41,7 @@
 			contentType: false,
 			// mimeType: 'multipart/from-data',
 			success: function(data){
-				slice_and_send(f, url, data); //123 대신 key를 return 받아서 넣어야 합니다.
+				slice_and_send(f, url, data, framelength); //123 대신 key를 return 받아서 넣어야 합니다.
 				console.log(data);
 			},
 			error: function(data){
@@ -50,7 +56,7 @@
 <body>
 	<form accept-charset=utf-8>
 		<div><label for="file">UPLOAD : </label><input type="file" id="file"></div>
-		<div><label for="time">TIME Expire (YMD his) :</label><input type="text" id="time"></div>
+		<div><label for="time">TIME Expire (ymdHM) :</label><input type="text" id="time"></div>
 		<div><label for="password">PASSWORD(OPTIONAL) :</label><input type="password" id="password"></div>
 
 		<div class="button">

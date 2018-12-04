@@ -5,7 +5,7 @@ import os
 import tempfile
 import csv
 from urllib.parse import urlparse, quote_plus
-
+from datetime import datetime
 import ssl
 
 import cgi
@@ -137,15 +137,21 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		filepath = self.parsed_path.path
 		filename, file_extension = os.path.splitext(filepath)
 
+		if self.path == '/':
+			filepath = 'index.html'
+
 		if splited[1] == "get": 
+
 			key = splited[-1].split('?')[0] #get query parameter away
 			record = self.get_active_db_record(key)
-			print(record)
 			if record is None:
-				self.send_response(404)
-				self.end_headers()
-				self.wfile.write('page not found or expired'.encode('utf-8'))
-				return
+				return self.send_404() #redirect to 404 page
+			
+			try:
+				if datetime.strptime(record[2], '%Y%m%d%H%M') < datetime.now():
+					return self.send_404()
+			except ValueError:
+				pass
 
 			if record[3] != "NULL" and self.parsed_path.query != 'password=' + record[3]: #if there is password
 				filepath = 'download.html'
@@ -165,9 +171,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 				self.end_headers()
 				self.wfile.write(message)
 			else:
-				self.send_response(404)
-				self.end_headers()
-				self.wfile.write('page not found or expired'.encode('utf-8'))
+				return self.send_404()
 		else:
 			self.send_response(400)
 			self.end_headers()
@@ -247,22 +251,26 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 			return
 		else:
 			self.send_response(200)
+			self.end_headers()
 
 	def finalize_recv(self, data):
 		self.send_response(200)
+		self.end_headers()
 		key = data['key']
 		record = self.get_active_record()[key]
 		self.del_active_record(key)
 		self._update_db(key, record)
 
-	def error_recv(self, data):
+	def send_404(self):
 		self.send_response(404)
+		self.end_headers()
+		self.wfile.write('page not found or expired'.encode('utf-8'))
 
 	def _write_file(self, key, start, content):
 		try: 
 			data = self.get_active_record()[key]
 		except KeyError:
-			self.error_recv() #fail handling in fron side
+			self.send_404() #fail handling in fron side
 
 		# print(data)
 
@@ -294,6 +302,9 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 			doc = 0
 
 		return doc
+
+	def log_message(self, format, *args):
+		return
 	
 # @call_log_class_soft
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, securedHTTPServer):

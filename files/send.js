@@ -1,8 +1,10 @@
 // https://gist.github.com/shiawuen/1534477
 
-function slice_and_send(f, url, new_url) {
+function slice_and_send(f, url, new_url, framelength) {
 
 var framesize = 1024768;
+
+var written_frame = 0;
 
 if (f.files.length)
   processFile();
@@ -28,9 +30,7 @@ function processFile(e) {
 
     if (end < size) {
       start += sliceSize;
-      setTimeout(loop, 1);
-    } else {
-      done();
+      setTimeout(loop, 100);
     }
   }
 }
@@ -39,6 +39,15 @@ function processFile(e) {
 function send(piece, start, end, url, new_url) {
   var formdata = new FormData();
   var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() { // 요청에 대한 콜백
+  if (xhr.readyState === xhr.DONE) { // 요청이 완료되면
+    if (xhr.status === 200 || xhr.status === 201) {
+      progress();
+    } else {
+      noop();
+    }
+  }
+  };
 
   xhr.open('POST', url, true);
 
@@ -63,7 +72,17 @@ function slice(file, start, end) {
 }
 
 function noop() {
-  
+  $('#done').html("Failed for some reason :( please try again!");
+}
+
+function progress() {
+  written_frame = written_frame + 1;
+  percent = written_frame / framelength * 100;
+
+  console.debug(written_frame + ' / ' + framelength);
+  $('#done').html(percent.toFixed(2) + "% completed");
+
+  if(written_frame == framelength) setTimeout(done, 2500);
 }
 
 function done() {
