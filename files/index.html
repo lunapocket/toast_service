@@ -24,19 +24,19 @@
 		data.append('file_name', f.files[0].name);
 		data.append('time_expire', $('#time').val());
 		data.append('password', $('#password').val());
-		data.append('frame_size', Math.ceil(f.files.length / framesize));
+		data.append('frame_size', Math.ceil(f.files[0].size / framesize));
 
 
 		$.ajax({
-			url: url,
+			url: url + 'Init',
 			data: data,
 			type: 'POST',
 			processData: false,
 			contentType: false,
 			// mimeType: 'multipart/from-data',
 			success: function(data){
-				slice_and_send(f, url, 123); //123 대신 key를 return 받아서 넣어야 합니다.
-				console.log('success');
+				slice_and_send(f, url, data); //123 대신 key를 return 받아서 넣어야 합니다.
+				console.log(data);
 			},
 			error: function(data){
 				console.log('failed');

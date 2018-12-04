@@ -2,6 +2,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import socketserver
 import threading
 import os
+import tempfile
 from urllib.parse import urlparse
 
 import ssl
@@ -24,7 +25,6 @@ class securedHTTPServer(HTTPServer):
 			ssl_version=ssl.PROTOCOL_TLS, bind_and_activate=True):
 
 		HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
-
 		self.certfile = certfile
 		self.keyfile = keyfile
 		self.ssl_version = ssl_version
@@ -46,9 +46,23 @@ class securedHTTPServer(HTTPServer):
 # @call_log_class
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
-	active_record = {} #key and other info
+	STORAGE_DIR = os.getcwd() + '/files/storage/'
+
+	_active_record = {} #tempfile key / filename, time_expire, password, framesize, written_frame,size
 	record_lock = threading.Lock()
 	db_lock = threading.Lock()
+
+	@classmethod
+	def set_active_record(cls, input = None):
+		with cls.record_lock:
+			if not input:
+				return
+			cls._active_record.update(input)
+
+	@classmethod
+	def get_active_record(cls):
+		with cls.record_lock:
+			return cls._active_record
 
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
@@ -86,17 +100,18 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		return
 
 	def do_POST(self):
-		# multipart 오브젝트가 가지고 있어야 할 것 
-		content_length = int(self.headers.get('content-length', 0))
-		body = self.rfile.read(content_length)
-		environ={'REQUEST_METHOD': 'POST'}
 
-		print(self.headers.get('content-type'))
-		print(self.client_address)
+		form = cgi.FieldStorage(
+				fp = self.rfile,
+				headers = self.headers,
+				environ = {'REQUEST_METHOD': 'POST'}
+			)
 
-		if('multipart/form-data' in self.headers.get('content-type')):
-			parsed = cgi.FieldStorage(IO(body), headers = self.headers, environ = environ)
+		parsed = self._parse_multipart(form)
 
+		if self.path == "/uploadFileInit":
+			self.init_recv(parsed)
+		
 			# print(parsed)
 			
 
@@ -104,6 +119,19 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		# print(self.headers['content-length'])
 		# print('---- end')
 		return
+
+	def init_recv(self, data):
+		tempfile_info = tempfile.mkstemp(dir = self.STORAGE_DIR) #requesting a key
+		key = os.path.basename(tempfile_info[1])
+		data['fp'] = tempfile_info[0] #very temporary! may need to be reset
+		data['written_frame_size'] = 0
+
+		self.set_active_record({key:data})
+		self.send_response(200)
+		self.send_header('content-length', len(key.encode('utf-8')))
+		self.end_headers()
+		self.wfile.write(key.encode('utf-8'))
+		print(self.get_active_record())
 
 	def _parse_multipart(self, fs):
 		'''fieldstorage -> dict'''
@@ -133,5 +161,5 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, securedHTTPServer):
 if __name__ == '__main__':
 	address = ('127.0.0.1', 8192) #let the kernal give us a port
 	server = ThreadedHTTPServer(address, ThreadedHTTPRequestHandler, 
-		certfile="c://temp/keys/toast2_cert.pem", keyfile="c://temp/keys/toast2_key.pem", f)
+		certfile="c://temp/keys/toast2_cert.pem", keyfile="c://temp/keys/toast2_key.pem")
 	server.serve_forever()
