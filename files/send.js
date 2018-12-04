@@ -2,6 +2,8 @@
 
 function slice_and_send(f, url, new_url) {
 
+var framesize = 1024768;
+
 if (f.files.length)
   processFile();
 
