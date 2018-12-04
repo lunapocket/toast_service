@@ -130,17 +130,30 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		return  
 
 	def do_GET(self):
+	
+		splited = self.path.split('/')
 		self.parsed_path = urlparse(self.path)
+
 		filepath = self.parsed_path.path
 		filename, file_extension = os.path.splitext(filepath)
+
+		if splited[1] == "get": 
+			key = splited[-1].split('?')[0] #get query parameter away
+			record = self.get_active_db_record(key)
+			print(record)
+			if record is None:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write('page not found or expired'.encode('utf-8'))
+				return
+
+			if record[3] != "NULL" and self.parsed_path.query != 'password=' + record[3]: #if there is password
+				filepath = 'download.html'
+			else:
+				self.send(key, record[1])
+				return
+
 		message = self._getFile(filepath)
-
-		splited = self.path.split('/')
-
-		if splited[1] == "get": #get/a.exe 의 경우 file 보내기
-			key = splited[-1]
-			self.send(key)
-			return
 
 		if self.request_version == "HTTP/1.1":
 			if message != 0:
@@ -154,6 +167,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 			else:
 				self.send_response(404)
 				self.end_headers()
+				self.wfile.write('page not found or expired'.encode('utf-8'))
 		else:
 			self.send_response(400)
 			self.end_headers()
@@ -183,9 +197,8 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		# print('---- end')
 		return
 
-	def send(self, key):
+	def send(self, key, filename):
 		basefile = os.getcwd() + '/files/storage/%s' % key
-		filename = self.get_active_db_record(key)[1]
 
 		self.send_response(200)
 		self.send_header('Transfer-Encoding', 'chunked')
@@ -209,7 +222,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		return b'%x\r\n%s\r\n' % (len(blob), blob)
 
 	def init_recv(self, data):
-		tempfile_info = tempfile.mkstemp(dir = self.STORAGE_DIR) #requesting a key
+		tempfile_info = tempfile.mkstemp(dir = self.STORAGE_DIR, prefix = '') #requesting a key
 		key = os.path.basename(tempfile_info[1])
 		data['fp'] = os.fdopen(tempfile_info[0], mode = 'w+b') #very temporary! may need to be reset
 		data['frame_size'] = int(data['frame_size'])
