@@ -6,7 +6,7 @@ class Test(object):
 	def send(self, key):
 		basefile = os.getcwd() + '\\files\\storage\\%s' % key
 
-		for i in self.iter_chunk(basefile, chunk_size = 5):
+		for i in self.iter_chunk(basefile, chunk_size = 1024):
 			print(self._wrap_chunk(i))
 		print(self._wrap_chunk(b''))
 
@@ -19,7 +19,7 @@ class Test(object):
 				yield data
 
 	def _wrap_chunk(self, blob):
-		return b'%d\\r\\n%s\\r\\n' % (len(blob), blob)
+		return b'%x\r\n%s\r\n' % (len(blob), blob)
 
 
 class Record(object):
@@ -79,4 +79,4 @@ class FileManager(object):
 
 if __name__ == '__main__':
 	ex = Test()
-	ex.send('b.txt')
+	ex.send('alice.txt')

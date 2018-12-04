@@ -4,7 +4,7 @@ import threading
 import os
 import tempfile
 import csv
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote_plus
 
 import ssl
 
@@ -109,6 +109,13 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 			cls.DB_FILE.flush()
 			# print(cls.active_db)
 
+	@classmethod
+	def get_active_db_record(cls, key):
+		cls._dump_csv()
+		for i in cls.active_db:
+			if i[0] == key:
+				return i
+
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
 		BaseHTTPRequestHandler.__init__(self, request, client_address, server)
@@ -127,9 +134,12 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		filename, file_extension = os.path.splitext(filepath)
 		message = self._getFile(filepath)
 
-		if self.path == "/a.txt":
-			key = 'b.txt'
+		splited = self.path.split('/')
+
+		if splited[1] == "get": #get/a.exe 의 경우 file 보내기
+			key = splited[-1]
 			self.send(key)
+			return
 
 		if self.request_version == "HTTP/1.1":
 			if message != 0:
@@ -174,13 +184,15 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 
 	def send(self, key):
 		basefile = os.getcwd() + '/files/storage/%s' % key
+		filename = self.get_active_db_record(key)[1]
+
 		self.send_response(200)
 		self.send_header('Transfer-Encoding', 'chunked')
 		self.send_header('Content-Type', 'application/octet-stream')
-		self.send_header('Content-Disposition', 'attachment')
+		self.send_header('Content-Disposition', 'attachment; filename = "%s"'%filename)
 		self.end_headers()
 
-		for i in self.iter_chunk(basefile, chunk_size = 5):
+		for i in self.iter_chunk(basefile):
 			self.wfile.write(self._wrap_chunk(i))
 		self.wfile.write(self._wrap_chunk(b''))
 
@@ -193,7 +205,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 				yield data
 
 	def _wrap_chunk(self, blob):
-		return b'%d\\r\\n%s\\r\\n' % (len(blob), blob)
+		return b'%x\r\n%s\r\n' % (len(blob), blob)
 
 	def init_recv(self, data):
 		tempfile_info = tempfile.mkstemp(dir = self.STORAGE_DIR) #requesting a key
