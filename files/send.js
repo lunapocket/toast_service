@@ -24,7 +24,7 @@ function processFile(e) {
     
     var s = slice(file, start, end);
 
-    send(s, start, end, url);
+    send(s, start, end, url, new_url);
 
     if (end < size) {
       start += sliceSize;

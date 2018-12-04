@@ -64,6 +64,29 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		with cls.record_lock:
 			return cls._active_record
 
+	@classmethod
+	def inc_written_frame(cls, key = None):
+		with cls.record_lock:
+			try:
+				cls._active_record[key]['written_frame_size'] = cls._active_record[key]['written_frame_size'] + 1
+			except KeyError:
+				pass
+
+	@classmethod
+	def del_active_record(cls, key = None):
+		with cls.record_lock:
+			if not input:
+				return
+			try:
+				del cls._active_record[key]
+			except KeyError:
+				pass
+
+	@classmethod
+	def _update_db(cls, record):
+		with cls.db_lock:
+			pass
+
 	def __init__(self, request, client_address, server):
 		# https://stackoverflow.com/questions/4685217/parse-raw-http-headers
 		BaseHTTPRequestHandler.__init__(self, request, client_address, server)
@@ -112,8 +135,10 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		if self.path == "/uploadFileInit":
 			self.init_recv(parsed)
 		
+
+		if self.path == "/uploadFile":
+			self.process_recv(parsed)
 			# print(parsed)
-			
 
 		# print('---- start')
 		# print(self.headers['content-length'])
@@ -123,15 +148,46 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 	def init_recv(self, data):
 		tempfile_info = tempfile.mkstemp(dir = self.STORAGE_DIR) #requesting a key
 		key = os.path.basename(tempfile_info[1])
-		data['fp'] = tempfile_info[0] #very temporary! may need to be reset
+		data['fp'] = os.fdopen(tempfile_info[0], mode = 'w+b') #very temporary! may need to be reset
+		data['frame_size'] = int(data['frame_size'])
 		data['written_frame_size'] = 0
+		data['lock'] = threading.Lock()
 
 		self.set_active_record({key:data})
 		self.send_response(200)
 		self.send_header('content-length', len(key.encode('utf-8')))
 		self.end_headers()
 		self.wfile.write(key.encode('utf-8'))
-		print(self.get_active_record())
+
+	def process_recv(self, data):
+		ret = self._write_file(data['key'], data['start'], data['file'])
+		if ret == 0:
+			self.finalize_recv(data)
+			return
+		else:
+			self.send_response(200)
+
+	def finalize_recv(self, data):
+		self.send_response(200)
+		key = data['key']
+		record = self.get_active_record()[key]
+		self.del_active_record(key)
+		self._update_db(record)
+
+	def _write_file(self, key, start, content):
+		data = self.get_active_record()[key]
+
+		print(data)
+
+		with data['lock']:
+			data['fp'].seek(int(start))
+			data['fp'].write(content)
+			self.inc_written_frame(key)
+			if data['frame_size'] ==  data['written_frame_size']:
+				return 0 #meaning that process is finished
+			else:
+				return 1
+
 
 	def _parse_multipart(self, fs):
 		'''fieldstorage -> dict'''
