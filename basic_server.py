@@ -50,6 +50,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 	STORAGE_DIR = os.getcwd() + '/files/storage/'
 	DB_PATH = os.getcwd() + '/files/filelist.csv'
 	DB_FILE = open(DB_PATH, 'a', newline='', encoding = 'utf-8')
+	FRAMESIZE = 1024768
 
 	_active_record = {} #tempfile key / filename, time_expire, password, framesize, written_frame,size
 	record_lock = threading.Lock()
@@ -126,6 +127,10 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		filename, file_extension = os.path.splitext(filepath)
 		message = self._getFile(filepath)
 
+		if self.path == "/a.txt":
+			key = 'b.txt'
+			self.send(key)
+
 		if self.request_version == "HTTP/1.1":
 			if message != 0:
 				self.send_response(200)
@@ -166,6 +171,29 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		# print(self.headers['content-length'])
 		# print('---- end')
 		return
+
+	def send(self, key):
+		basefile = os.getcwd() + '/files/storage/%s' % key
+		self.send_response(200)
+		self.send_header('Transfer-Encoding', 'chunked')
+		self.send_header('Content-Type', 'application/octet-stream')
+		self.send_header('Content-Disposition', 'attachment')
+		self.end_headers()
+
+		for i in self.iter_chunk(basefile, chunk_size = 5):
+			self.wfile.write(self._wrap_chunk(i))
+		self.wfile.write(self._wrap_chunk(b''))
+
+	def iter_chunk(self, file_path, chunk_size = 1024768):
+		with open(file_path, 'rb') as f:
+			while True:
+				data = f.read(chunk_size)
+				if not data:
+					break
+				yield data
+
+	def _wrap_chunk(self, blob):
+		return b'%d\\r\\n%s\\r\\n' % (len(blob), blob)
 
 	def init_recv(self, data):
 		tempfile_info = tempfile.mkstemp(dir = self.STORAGE_DIR) #requesting a key
@@ -227,7 +255,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		for element in fs.list:
 			data[element.name] = element.value
 
-		return data		
+		return data
 	
 	def _getFile(self, filename):
 		'''get and read file and return the bytestring '''

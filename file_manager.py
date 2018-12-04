@@ -2,6 +2,26 @@ from threading import Lock
 import tempfile
 import os
 
+class Test(object):
+	def send(self, key):
+		basefile = os.getcwd() + '\\files\\storage\\%s' % key
+
+		for i in self.iter_chunk(basefile, chunk_size = 5):
+			print(self._wrap_chunk(i))
+		print(self._wrap_chunk(b''))
+
+	def iter_chunk(self, file_path, chunk_size = 1024768):
+		with open(file_path, 'rb') as f:
+			while True:
+				data = f.read(chunk_size)
+				if not data:
+					break
+				yield data
+
+	def _wrap_chunk(self, blob):
+		return b'%d\\r\\n%s\\r\\n' % (len(blob), blob)
+
+
 class Record(object):
 
 	def __init__(self, key = None, IP = None, realname = None, password = None, time_expire = None, frame = None, written_frame_szie = None):
@@ -58,4 +78,5 @@ class FileManager(object):
 			pass
 
 if __name__ == '__main__':
-	pass
+	ex = Test()
+	ex.send('b.txt')
